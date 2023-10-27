@@ -1,9 +1,9 @@
 <script lang="ts">
-    import {getVisualizer} from '$lib/utilities/visualization_service';
+    import {getAlgorithm, mergeSort} from '$lib/algorithms/sorting';
+    import {selectedAlgorithm, speed} from '$lib/store/sorting_store';
+    import {get} from 'svelte/store';
+    import {createSortElementList, SortElement} from '$lib/models/SortElement';
     import {SortingControls, SortingVisualizer} from "$lib/components";
-    import {selectedAlgorithm, speed} from "$lib/store/sorting_store";
-    import {get} from "svelte/store";
-    import {createSortElementList, SortElement} from "$lib/models/SortElement";
 
     const initialArray: SortElement[] = createSortElementList(10);
     let array: SortElement[] = [...initialArray];
@@ -14,18 +14,29 @@
     }
 
     const handleSort = async (): Promise<void> => {
-        let algo = get(selectedAlgorithm);
-        let algoSpeed = get(speed);
-        if(processing == true) return;
+        const selectedAlgoKey = get(selectedAlgorithm);
+        const algo = getAlgorithm(selectedAlgoKey);
+        const algoSpeed = get(speed);
+        console.log(selectedAlgoKey);
+        if (processing) return;
         processing = true;
-        const visualizerFunction = getVisualizer(algo);
-        const visualizer = visualizerFunction(array, (updatedArray) => {
+
+        await algo(array, algoSpeed, (updatedArray) => {
             array = updatedArray;
         });
-        await algo(array, algoSpeed, visualizer);
         processing = false;
-    }
+    };
+    const testData: SortElement[] = [
+        { value: 5 },
+        { value: 2 },
+        { value: 8 },
+        { value: 1 },
+        { value: 4 }
+    ];
 
+    console.log("Before sorting:", testData);
+    mergeSort(testData, 0, () => {});
+    console.log("After sorting:", testData);
 </script>
 
 <div id="page-container">

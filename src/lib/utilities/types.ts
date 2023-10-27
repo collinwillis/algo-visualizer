@@ -1,4 +1,3 @@
-export type VisualElement = {
-    value: number;
-    color: string;
-};
+import type { SortElement } from '$lib/models/SortElement';
+
+export type UpdateCallback = (arr: SortElement[]) => void;
