@@ -1,17 +1,16 @@
 <script lang="ts">
     import {getVisualizer} from '$lib/utilities/visualization_service';
-    import Visualizer from '$lib/components/sorting/visualizer.svelte';
-    import Controls from '$lib/components/sorting/controls.svelte';
-    import type {VisualElement} from "$lib/utilities/types";
+    import {SortingControls, SortingVisualizer} from "$lib/components";
     import {selectedAlgorithm, speed} from "$lib/store/sorting_store";
     import {get} from "svelte/store";
+    import {createSortElementList, SortElement} from "$lib/models/SortElement";
 
-    let initialArray: VisualElement[] = [34, 7, 23, 32, 5, 62, 4, 22, 56, 32, 23,66].map(value => ({value, color: '#3498db'}));
-    let array: VisualElement[] = [...initialArray];
+    const initialArray: SortElement[] = createSortElementList(10);
+    let array: SortElement[] = [...initialArray];
     let processing = false;
 
     const handleReset = () => {
-        array = [...initialArray];
+        array = createSortElementList(10);
     }
 
     const handleSort = async (): Promise<void> => {
@@ -20,11 +19,10 @@
         if(processing == true) return;
         processing = true;
         const visualizerFunction = getVisualizer(algo);
-        const numberArray = array.map(item => item.value);
-        const visualizer = visualizerFunction(numberArray, (updatedArray) => {
+        const visualizer = visualizerFunction(array, (updatedArray) => {
             array = updatedArray;
         });
-        await algo(numberArray, algoSpeed, visualizer);
+        await algo(array, algoSpeed, visualizer);
         processing = false;
     }
 
@@ -37,8 +35,8 @@
     </header>
 
     <div id="visualizer-container">
-        <div id="controls-container"><Controls on:sort={handleSort} on:reset={handleReset} /></div>
-        <Visualizer {array}/>
+        <div id="controls-container"><SortingControls on:sort={handleSort} on:reset={handleReset} /></div>
+        <SortingVisualizer {array}/>
     </div>
 
 </div>
@@ -70,7 +68,6 @@
     #visualizer-container {
         max-width: 95%;  /* Set a maximum width */
         width: 100%;
-
         padding: 20px;
         background: #ffffff;
         border-radius: 10px;
