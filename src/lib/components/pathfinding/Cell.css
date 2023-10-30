@@ -95,23 +95,26 @@
 /*}*/
 
 .node {
-    width: 30px;
-    height: 30px;
-    border: none;
-    margin: 0;
-    border-right: 1px solid #e0e0e0;
-    border-bottom: 1px solid #e0e0e0;
+    width: 25px;
+    height: 25px;
+    border: 1px solid #e0e0e0;  /* Light gray border */
     display: inline-block;
     user-select: none;
     background-color: transparent;
-    box-sizing: border-box;
+    box-sizing: border-box;  /* Added this line */
+}
+.first-col {
+    border-left: 2px solid #e0e0e0;  /* Light gray border */
+}
+.first-row {
+    border-top: 2px solid #e0e0e0;  /* Light gray border */
 }
 
-.node:last-child {
-    border-right: none;
+.last-col {
+    border-right: 2px solid #e0e0e0;  /* Light gray border */
 }
-.last-row .node {
-    border-bottom: none;
+.last-row {
+    border-bottom: 2px solid #e0e0e0;  /* Light gray border */
 }
 
 .node:hover {
@@ -121,35 +124,53 @@
 
 
 .node-start, .node-finish {
-    background: linear-gradient(135deg, #7c4dff 0%, #18ffff 100%);
+    cursor: grab;
     border: 1px solid transparent;
     animation: pulseAnimation 2s infinite;
 }
 
-.node-finish {
-    background: linear-gradient(135deg, #ff4081 0%, #ff80ab 100%);
-    border: 1px solid transparent;
+.node-start {
+    background: radial-gradient(circle, #6EFF70, #32D74B); /* Radiant Bright Green to Deeper Green */
+    box-shadow:
+            0px 2px 4px 2px rgba(110, 255, 112, 0.4), /* Subtle bright green glow */
+            inset 0px 0px 8px rgba(50, 215, 75, 0.7); /* Inset shadow for 3D effect */
+    border: 2px solid rgba(110, 255, 112, 0.8); /* Bright Green border for added definition */
+    border-radius: 50%; /* Circular shape */
 }
+
+
+
+
+
+.node-finish {
+    background: radial-gradient(circle, #FF5722, #E91E63); /* Radiant Deep Orange to Pink */
+    box-shadow:
+            0px 2px 4px 2px rgba(255, 85, 34, 0.4), /* Subtle orange glow */
+            inset 0px 0px 8px rgba(255, 69, 0, 0.7); /* Inset shadow for 3D effect */
+    border: 2px solid rgba(255, 69, 0, 0.8); /* Deep Orange border for added definition */
+    border-radius: 50%; /* Circular shape */
+}
+
 
 @keyframes pulseAnimation {
     0% {
-        box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7);
+        box-shadow: 0 0 0 0 rgba(101, 116, 205, 0.7);
     }
     70% {
-        box-shadow: 0 0 0 10px rgba(255, 82, 82, 0);
+        box-shadow: 0 0 0 10px rgba(101, 116, 205, 0);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(255, 82, 82, 0);
+        box-shadow: 0 0 0 0 rgba(101, 116, 205, 0);
     }
 }
 
 
 .node-wall {
-    background-color: #455a64; /* Blue Grey - gives a modern, sleek look */
-    border: 1px solid #455a64;
-    box-shadow: 3px 3px 5px 0 rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
-    opacity: 0; /* Initially invisible */
-    transform: scaleX(0) scaleY(0); /* Start from the center */
+    background-color: #2C3E50; /* Deep blue-gray */
+    border: 1px solid #2C3E50;
+    box-shadow: 2px 2px 4px 0 rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: scaleX(0) scaleY(0);
     animation: buildWall 0.5s forwards;
 }
 
@@ -159,11 +180,11 @@
         opacity: 0;
     }
     50% {
-        transform: scaleX(0.7) scaleY(0.7); /* Overshoot the scale for a 'bouncy' effect */
+        transform: scaleX(0.7) scaleY(0.7);
         opacity: 0.7;
     }
     100% {
-        transform: scaleX(1) scaleY(1); /* Return to normal size */
+        transform: scaleX(1) scaleY(1);
         opacity: 1;
     }
 }
@@ -172,7 +193,7 @@
     animation-name: visitedAnimation;
     animation-duration: 1.5s;
     animation-timing-function: ease-out;
-    animation-delay: 0;
+    animation-delay: 0ms;
     animation-direction: alternate;
     animation-iteration-count: 1;
     animation-fill-mode: forwards;
@@ -182,59 +203,55 @@
 @keyframes visitedAnimation {
     0% {
         transform: scale(0.3);
-        background-color: rgba(100, 181, 246, 0.75); /* Light Blue */
+        background-color: rgba(255, 140, 0, 0.75); /* Dark Orange */
         border-radius: 100%;
     }
-
     50% {
-        background-color: rgba(79, 195, 247, 0.75); /* Brighter Light Blue */
+        background-color: rgba(255, 165, 0, 0.75); /* Orange */
     }
-
     75% {
         transform: scale(1.2);
-        background-color: rgba(41, 182, 246, 0.75); /* Cyan */
+        background-color: rgba(255, 69, 0, 0.75); /* Orange Red */
     }
-
     100% {
         transform: scale(1);
-        background-color: rgba(3, 169, 244, 0.75); /* Deep Light Blue */
+        background-color: rgba(255, 99, 71, 0.85); /* Tomato */
     }
 }
+
+
 
 .node-shortest-path {
     animation-name: shortestPath;
     animation-duration: 1.5s;
     animation-timing-function: ease-out;
-    animation-delay: 0;
-    animation-direction: alternate;
-    animation-iteration-count: 1;
     animation-fill-mode: forwards;
-    animation-play-state: running;
 }
 
 @keyframes shortestPath {
     0% {
         transform: scale(0.6);
-        background-color: #00e676;
-        border: 1px solid #00e676;
-        box-shadow: 0 0 5px 2px rgba(0, 230, 118, 0.4); /* More subtle green glow */
-        text-shadow: 0 0 3px rgba(0, 230, 118, 0.8), 0 0 6px rgba(0, 230, 118, 0.8);
+        background-color: #2196F3;
+        border: 1px solid #2196F3;
+        box-shadow: 0 0 5px 2px rgba(33, 150, 243, 0.4); /* More subtle blue glow */
+        text-shadow: 0 0 3px rgba(33, 150, 243, 0.8), 0 0 6px rgba(33, 150, 243, 0.8);
     }
 
     50% {
         transform: scale(1.2);
-        background-color: #00e676;
-        border: 1px solid #00e676;
-        box-shadow: 0 0 7px 3px rgba(0, 230, 118, 0.5);
-        text-shadow: 0 0 5px rgba(0, 230, 118, 0.9), 0 0 8px rgba(0, 230, 118, 0.9);
+        background-color: #2196F3;
+        border: 1px solid #2196F3;
+        box-shadow: 0 0 7px 3px rgba(33, 150, 243, 0.5);
+        text-shadow: 0 0 5px rgba(33, 150, 243, 0.9), 0 0 8px rgba(33, 150, 243, 0.9);
     }
 
     100% {
         transform: scale(1);
-        background-color: #00e676;
-        border: 1px solid #00e676;
-        box-shadow: 0 0 10px 4px rgba(0, 230, 118, 0.6);
-        text-shadow: 0 0 7px rgba(0, 230, 118, 1), 0 0 10px rgba(0, 230, 118, 1);
+        background-color: #2196F3;
+        border: 1px solid #2196F3;
+        box-shadow: 0 0 10px 4px rgba(33, 150, 243, 0.6);
+        text-shadow: 0 0 7px rgba(33, 150, 243, 1), 0 0 10px rgba(33, 150, 243, 1);
     }
 }
+
 

@@ -15,6 +15,9 @@
     let FINISH_NODE_ROW: number = 10;
     let FINISH_NODE_COL: number = 35;
 
+    const START_PROPORTION = 0.25; // 25%
+    const END_PROPORTION = 0.75;  // 75%
+
     let draggingStart = false;
     let draggingFinish = false;
 
@@ -24,19 +27,29 @@
 
 
     function updateGridSize() {
+        console.log("HELLO");
         const width = window.innerWidth;
         const height = window.innerHeight;
-        document.documentElement.style.setProperty('--num-cols', gridWidth);
 
         // Adjust these values based on your layout
-        gridWidth = Math.floor(width / 35); // 30 is the approx width of a cell in pixels
-        gridHeight = Math.floor(height / 35); // 30 is the approx height of a cell in pixels
+        gridWidth = Math.floor(width / 25); // 30 is the approx width of a cell in pixels
+        gridHeight = Math.floor(height / 25); // 30 is the approx height of a cell in pixels
+
+        document.documentElement.style.setProperty('--num-cols', gridWidth);
+
+        // Recompute the start and end node positions
+        START_NODE_ROW = Math.floor(gridHeight * START_PROPORTION);
+        START_NODE_COL = Math.floor(gridWidth * START_PROPORTION);
+        FINISH_NODE_ROW = Math.floor(gridHeight * END_PROPORTION);
+        FINISH_NODE_COL = Math.floor(gridWidth * END_PROPORTION);
 
         // Clear and update the grid
-        grid = getInitialGrid();
+        grid = [...getInitialGrid()];
     }
 
+
     onMount(() => {
+        document.body.style.cursor = 'pointer';
         // Set initial grid size and establish the grid
         updateGridSize();
 
@@ -55,13 +68,15 @@
         });
     });
 
-    function handleMouseDown(row: number, col: number): void {
+    function handleMouseDown(row: number, col: number, event): void {
+        event.preventDefault();
         document.body.style.userSelect = "none";
-
         if (row === START_NODE_ROW && col === START_NODE_COL) {
             draggingStart = true;
+            document.body.style.cursor = 'grabbing';
         } else if (row === FINISH_NODE_ROW && col === FINISH_NODE_COL) {
             draggingFinish = true;
+            document.body.style.cursor = 'grabbing';
         } else {
             grid = getNewGridWithWallToggled(grid, row, col);
             mouseIsPressed = true;
@@ -87,6 +102,7 @@
 
 
     function handleMouseUp(): void {
+        document.body.style.cursor = 'pointer';
         document.body.style.userSelect = "";
         mouseIsPressed = false;
         draggingStart = false;
@@ -152,6 +168,7 @@
         for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
             setTimeout(() => {
                 const node = nodesInShortestPathOrder[i];
+                if(node.isStart || node.isEnd) return;
                 document.getElementById(`node-${node.row}-${node.col}`).className =
                     'node node-shortest-path';
             }, 50 * i);
@@ -169,13 +186,14 @@
         }
 
         // Set start and end nodes, with bounds checking
-        START_NODE_ROW = Math.min(START_NODE_ROW, gridHeight - 1);
-        START_NODE_COL = Math.min(START_NODE_COL, gridWidth - 1);
-        FINISH_NODE_ROW = Math.min(FINISH_NODE_ROW, gridHeight - 1);
-        FINISH_NODE_COL = Math.min(FINISH_NODE_COL, gridWidth - 1);
+        START_NODE_ROW = Math.floor(gridHeight * START_PROPORTION);
+        START_NODE_COL = Math.floor(gridWidth * START_PROPORTION);
+        FINISH_NODE_ROW = Math.floor(gridHeight * END_PROPORTION);
+        FINISH_NODE_COL = Math.floor(gridWidth * END_PROPORTION);
 
         grid[START_NODE_ROW][START_NODE_COL].isStart = true;
         grid[FINISH_NODE_ROW][FINISH_NODE_COL].isEnd = true;
+
 
         return grid;
     };
@@ -191,6 +209,52 @@
         return newGrid;
     };
 
+    function generateMaze() {
+        // Initialize all cells as walls
+        for (let row of grid) {
+            for (let cell of row) {
+                cell.isWall = true;
+            }
+        }
+
+        // Recursive function to carve the maze
+        function carve(x, y) {
+            const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+
+            // Randomize directions
+            directions.sort(() => Math.random() - 0.5);
+
+            for (let [dx, dy] of directions) {
+                const nx = x + dx*2, ny = y + dy*2;
+                // Adjust the valid carving bounds to be 1 cell away from the edges
+                if (nx > 0 && nx < gridWidth - 1 && ny > 0 && ny < gridHeight - 1 && grid[ny][nx].isWall) {
+                    grid[y + dy][x + dx].isWall = false;
+                    grid[ny][nx].isWall = false;
+                    carve(nx, ny);
+                }
+            }
+        }
+
+        const startX = START_NODE_COL % 2 === 0 ? START_NODE_COL + 1 : START_NODE_COL;
+        const startY = START_NODE_ROW % 2 === 0 ? START_NODE_ROW + 1 : START_NODE_ROW;
+
+        grid[startY][startX].isWall = false;
+        carve(startX, startY);
+
+        // Ensure the start and end nodes are paths
+        grid[START_NODE_ROW][START_NODE_COL].isWall = false;
+        grid[FINISH_NODE_ROW][FINISH_NODE_COL].isWall = false;
+
+        // Set start and end markers
+        grid[START_NODE_ROW][START_NODE_COL].isStart = true;
+        grid[FINISH_NODE_ROW][FINISH_NODE_COL].isEnd = true;
+        grid = [...grid];
+    }
+
+
+
+
+
 </script>
 
 <style>
@@ -203,13 +267,13 @@
         height: auto;
     }
 
-
     .grid > div {
-        flex-basis: calc(100% / var(--num-cols)); /* where --num-cols is your number of columns */
-        box-sizing: border-box; /* optional, for spacing/padding */
+        flex-basis: calc(100% / var(--num-cols));
+        box-sizing: border-box;
+        display: flex;   /* Added this line */
     }
-</style>
 
+</style>
 <button on:click={visualizeDijkstra}>
     Visualize Dijkstra's Algorithm
 </button>
@@ -219,12 +283,29 @@
 <button on:click={visualizeBSF}>
     Visualize BSF Algorithm
 </button>
+<button on:click={generateMaze}>
+    Generate Maze
+</button>
 <div class="grid">
     {#each grid as row, rowIndex}
-        <div class="{rowIndex === grid.length - 1 ? 'last-row' : ''}">
-            {#each row as cell}
-                <Cell isEnd={cell.isEnd} isStart={cell.isStart} isWall={cell.isWall} col={cell.col} row={cell.row} onMouseDown={handleMouseDown} onMouseEnter={handleMouseEnter} onMouseUp={handleMouseUp} />
+        <div>
+            {#each row as cell, colIndex}
+                <Cell
+                        isEnd={cell.isEnd}
+                        isStart={cell.isStart}
+                        isWall={cell.isWall}
+                        col={cell.col}
+                        row={cell.row}
+                        isFirstRow={rowIndex === 0}
+                        isFirstCol={colIndex === 0}
+                        isLastRow={rowIndex === grid.length - 1}
+                        isLastCol={colIndex === row.length - 1}
+                        onMouseDown={handleMouseDown}
+                        onMouseEnter={handleMouseEnter}
+                        onMouseUp={handleMouseUp}
+                />
             {/each}
         </div>
     {/each}
+
 </div>
