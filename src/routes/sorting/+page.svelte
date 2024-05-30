@@ -4,11 +4,11 @@
     // ================================
     import { SortItem } from "$lib/models/SortItem";
     import {
-        bubbleSort,
+        bubbleSort, bucketSort, heapSort,
         insertionSort,
         mergeSort,
         quickSort,
-        selectionSort
+        selectionSort, shellSort
     } from "$lib/algorithms/sorting";
 
     // ================================
@@ -20,6 +20,9 @@
         { name: 'Insertion Sort', func: insertionSort },
         { name: 'Quick Sort', func: quickSort },
         { name: 'Merge Sort', func: mergeSort },
+        { name: 'Heap Sort', func: heapSort },
+        { name: 'Shell Sort', func: shellSort },
+        { name: 'Bucket Sort', func: bucketSort },
     ];
 
     // Array-related

@@ -1,4 +1,4 @@
-import type { SortItem } from '$lib/models/SortItem';
+import { SortItem } from '$lib/models/SortItem';
 
 export function bubbleSort(array: SortItem[]): SortItem[][] {
 	const steps: SortItem[][] = [];
@@ -245,6 +245,179 @@ export function mergeSort(array: SortItem[]): SortItem[][] {
 		array[i].isSorted = true;
 		steps.push(array.map((item) => item.clone()));
 	}
+
+	return steps;
+}
+
+export function heapSort(array: SortItem[]): SortItem[][] {
+	const steps: SortItem[][] = [];
+	const n = array.length;
+
+	const heapify = (n: number, i: number) => {
+		let largest = i;
+		const left = 2 * i + 1;
+		const right = 2 * i + 2;
+
+		array[i].isCurrent = true;
+
+		if (left < n && array[left].value > array[largest].value) {
+			largest = left;
+		}
+
+		if (right < n && array[right].value > array[largest].value) {
+			largest = right;
+		}
+
+		if (largest !== i) {
+			[array[i].value, array[largest].value] = [array[largest].value, array[i].value];
+			array[i].isSwapping = true;
+			array[largest].isSwapping = true;
+			steps.push(array.map((item) => item.clone()));
+			array[i].isSwapping = false;
+			array[largest].isSwapping = false;
+
+			heapify(n, largest);
+		}
+
+		array[i].isCurrent = false;
+		steps.push(array.map((item) => item.clone()));
+	};
+
+	for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+		heapify(n, i);
+	}
+
+	for (let i = n - 1; i > 0; i--) {
+		[array[0].value, array[i].value] = [array[i].value, array[0].value];
+		array[0].isSwapping = true;
+		array[i].isSwapping = true;
+		array[i].isSorted = true;
+		steps.push(array.map((item) => item.clone()));
+		array[0].isSwapping = false;
+		array[i].isSwapping = false;
+
+		heapify(i, 0);
+	}
+
+	array[0].isSorted = true;
+	steps.push(array.map((item) => item.clone()));
+
+	return steps;
+}
+
+export function shellSort(array: SortItem[]): SortItem[][] {
+	const steps: SortItem[][] = [];
+	const n = array.length;
+
+	for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+		for (let i = gap; i < n; i++) {
+			const tempValue = array[i].value;
+			array[i].isCurrent = true;
+			steps.push(array.map((item) => item.clone()));
+
+			let j;
+			for (j = i; j >= gap && array[j - gap].value > tempValue; j -= gap) {
+				array[j].value = array[j - gap].value;
+				array[j].isSwapping = true;
+				array[j - gap].isSwapping = true;
+				steps.push(array.map((item) => item.clone()));
+				array[j].isSwapping = false;
+				array[j - gap].isSwapping = false;
+			}
+
+			array[i].isCurrent = false;
+			array[j].value = tempValue;
+			steps.push(array.map((item) => item.clone()));
+		}
+	}
+
+	for (let i = 0; i < n; i++) {
+		array[i].isSorted = true;
+		steps.push(array.map((item) => item.clone()));
+	}
+
+	return steps;
+}
+
+export function bucketSort(array: SortItem[]): SortItem[][] {
+	const steps: SortItem[][] = [];
+	const numBuckets = 5;
+	const min = Math.min(...array.map((item) => item.value));
+	const max = Math.max(...array.map((item) => item.value));
+	const bucketRange = Math.ceil((max - min + 1) / numBuckets);
+
+	const buckets: SortItem[][] = Array.from({ length: numBuckets }, () => []);
+
+	// Distribute items to buckets
+	for (const item of array) {
+		const bucketIndex = Math.floor((item.value - min) / bucketRange);
+		item.isMerging = true; // Highlight placing in a bucket
+		steps.push(array.map((i) => i.clone()));
+
+		buckets[bucketIndex].push(item.clone());
+		item.isMerging = false;
+		for (const bucketItem of buckets[bucketIndex]) {
+			bucketItem.isCurrent = true; // Highlight current bucket
+		}
+		steps.push(array.map((i) => i.clone()));
+
+		for (const bucketItem of buckets[bucketIndex]) {
+			bucketItem.isCurrent = false; // Unhighlight
+		}
+	}
+
+	for (const item of array) {
+		item.value = undefined;
+	}
+	steps.push(array.map((item) => item.clone()));
+
+	let index = 0;
+	for (const bucket of buckets) {
+		for (let j = 1; j < bucket.length; j++) {
+			let key = bucket[j].clone();
+			let k = j - 1;
+
+			while (k >= 0) {
+				bucket[k + 1].isComparing = true;
+				key.isComparing = true;
+				steps.push(
+					[...array.slice(0, index), ...bucket, ...array.slice(index + bucket.length)].map((item) =>
+						item ? item.clone() : new SortItem()
+					)
+				);
+
+				if (bucket[k].value > key.value) {
+					bucket[k + 1] = bucket[k].clone();
+					bucket[k + 1].isSwapping = true;
+					steps.push(
+						[...array.slice(0, index), ...bucket, ...array.slice(index + bucket.length)].map(
+							(item) => (item ? item.clone() : new SortItem())
+						)
+					);
+				} else {
+					break;
+				}
+
+				k--;
+				bucket[k + 1].isComparing = false;
+				key.isComparing = false;
+			}
+			bucket[k + 1] = key;
+			key.isComparing = false;
+		}
+
+		for (const item of bucket) {
+			array[index] = item.clone();
+			array[index].isSwapping = true;
+			steps.push(array.map((item) => item.clone()));
+			array[index].isSwapping = false;
+			steps.push(array.map((item) => item.clone()));
+			index++;
+		}
+	}
+
+	array.forEach((item) => (item.isSorted = true));
+	steps.push(array.map((item) => item.clone()));
 
 	return steps;
 }
